@@ -19,17 +19,24 @@ The game continuously reacts to player moves by validating input, updating the b
 
 ## Pseudocode
 
-while game_not_over:
-    display_board()
+start new chess board
 
-    move = get_player_move()
+while game is not over:
+    display board
+    get move from current player
 
-    if move_is_legal(move):
-        make_move(move)
-        update_display()
+    if move is legal:
+        make move on board
+        update display
 
-        if checkmate:
-            end_game()
+        if player is in check:
+            show check warning
+
+        if game is over:
+            show result
+            break
+
+        switch turns
     else:
-        show_error()
+        show "Invalid move"
     
