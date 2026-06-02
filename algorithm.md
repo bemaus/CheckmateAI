@@ -56,42 +56,44 @@ Retry      Check Game Status
 
 ## Pseudocode
 
-start new chess board
-BEGIN
+Start Game
 
-WHILE game is not over
+Initialize chess board
+Set current player to White
 
-    Display Board
+While game is not over:
 
-    Generate Legal Moves for Current Player
+    Display board
 
-    Get Player Move
+    Wait for player input
 
-    IF move is in Legal Moves THEN
+    Player selects a piece
+    Player selects a destination square
 
-        Execute Move
-        Update Board State
-        Record Move in History
+    Identify the selected piece type
 
-        IF opponent is in Check THEN
-            Display "Check"
-        END IF
+    Generate legal moves for that piece
+        Pawn: forward movement and diagonal capture
+        Rook: horizontal and vertical movement
+        Bishop: diagonal movement
+        Knight: L-shaped movement
+        Queen: horizontal, vertical, and diagonal movement
+        King: one-square movement
 
-        IF Checkmate THEN
-            Display Winner
-            End Game
-        ELSE IF Stalemate OR Draw THEN
-            Display Draw
-            End Game
-        ELSE
-            Switch Player Turn
-        END IF
+    Check if the selected destination is legal
 
-    ELSE
-        Display "Invalid Move"
-    END IF
+    If move is legal:
+        Update the board
+        Switch turns
+    Else:
+        Display "Invalid move"
+        Ask player to choose again
 
-END WHILE
+    Check game status
+        If checkmate:
+            End game
+        If stalemate or draw:
+            End game
 
-END
-    
+End Game
+End    
