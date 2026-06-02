@@ -9,12 +9,10 @@ SQ_SIZE = WIDTH // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
 
-
 def loadImages():
     pieces = ['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'bp', 'bR', 'bN', 'bB', 'bQ', 'bK']
     for piece in pieces:
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
-
 
 
 def main():
@@ -26,7 +24,7 @@ def main():
     loadImages()
     running = True
     sqSelected = () #no square is selected, keep track of the last click of the user (Tuple: (row,col))
-    playerClicks = [] #keep track of player clicks (two tuples: [(6,4), (
+    playerClicks = []
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
@@ -43,10 +41,13 @@ def main():
                     playerClicks.append(sqSelected) # append for both 1st and 2nd clicks
                 if len(playerClicks) == 2: #after 2nd click
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    print(move.getChessNotation())
-                    gs.makeMove(move)
-                    sqSelected = () #reset user clicks
-                    playerClicks = []
+                    if gs.is_legal(move): # Tests if move is Legal
+                        print(move.getChessNotation())
+                        gs.makeMove(move)
+                        sqSelected = () #reset user clicks
+                        playerClicks = []
+                    else:
+                        print("Invalid move")
 
 
         drawGameState(screen, gs)

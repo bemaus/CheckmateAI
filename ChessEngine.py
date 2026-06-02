@@ -5,6 +5,7 @@ This class is responsible for storing all the information about the current stat
 """
 class GameState():
     def __init__(self):
+        logic_board = chess.Board() # Will keep track of all moves to follow chess rules
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
@@ -17,11 +18,18 @@ class GameState():
         self.whiteToMove = True
         self.moveLog =[]
 
+    def is_legal(self, move):  #Add chess logic here
+        return True
+
+
+
     def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
         self.board[move.endRow][move.endCol] = move.pieceMoved
         self.moveLog.append(move) #log the move to be able to undo it later.
         self.whiteToMove = not self.whiteToMove #swap players
+
+
 
 
 class Move():
@@ -47,6 +55,7 @@ class Move():
 
     def getRankFile(self, r, c):
         return self.colsToFiles[c] + self.rowsToRanks[r]
+
 
 
 
