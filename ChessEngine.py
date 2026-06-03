@@ -18,7 +18,23 @@ class GameState():
         self.whiteToMove = True
         self.moveLog =[]
 
-    def is_legal(self, move):  #Add chess logic here
+    def is_legal(self, move):
+    # Cannot move an empty square
+        if move.pieceMoved == "--":
+            return False
+
+        # White can only move white pieces
+        if self.whiteToMove and move.pieceMoved[0] != "w":
+            return False
+
+        # Black can only move black pieces
+        if not self.whiteToMove and move.pieceMoved[0] != "b":
+            return False
+
+        # Cannot capture your own piece
+        if move.pieceCaptured != "--" and move.pieceCaptured[0] == move.pieceMoved[0]:
+            return False
+
         return True
 
 
@@ -28,6 +44,42 @@ class GameState():
         self.board[move.endRow][move.endCol] = move.pieceMoved
         self.moveLog.append(move) #log the move to be able to undo it later.
         self.whiteToMove = not self.whiteToMove #swap players
+
+
+    def move_leaves_king_in_check(self, move):
+        original_start = self.board[move.startRow][move.startCol]
+        original_end = self.board[move.endRow][move.endCol]
+
+        # make temp move
+        self.board[move.startRow][move.startCol] = "--"
+        self.board[move.endRow][move.endCol] = move.pieceMoved
+
+        king_color = move.pieceMoved[0]
+        king_row, king_col = self.find_king(king_color)
+
+        in_check = self.square_under_attack(king_row, king_col, king_color)
+
+        # Undo temp move
+        self.board[move.startRow][move.startCol] = original_start
+        self.board[move.endRow][move.endCol] = original_end
+
+        return in_check
+    
+
+    def find_king(self, color):
+        king = color + "K"
+        for r in range(8):
+            for c in range(8):
+                if self.board[r][c] == king:
+                    return r, c
+        return None
+    
+    def square_under_attack(self, row, col, king_color):
+        opponent_color = "b" if king_color == "w" else "w"
+
+        # Check if any opponent piece can attack this square
+        # This can reuse your teammates' piece-move logic.
+        return False
 
 
 
