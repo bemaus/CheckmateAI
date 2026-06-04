@@ -34,8 +34,49 @@ class GameState():
         # Cannot capture your own piece
         if move.pieceCaptured != "--" and move.pieceCaptured[0] == move.pieceMoved[0]:
             return False
+        
+        # Pawn movement logic
+        if move.pieceMoved[1] == "p":
+            return self.is_valid_pawn_move(move)
 
         return True
+    
+
+    def is_valid_pawn_move(self, move):
+        piece_color = move.pieceMoved[0]
+
+        row_change = move.endRow - move.startRow
+        col_change = move.endCol - move.startCol
+
+        # White pawns move up the board, row goes down
+        if piece_color == "w":
+            direction = -1
+            start_row = 6
+
+        # Black pawns move down the board, row goes up
+        else:
+            direction = 1
+            start_row = 1
+
+        # Move forward 1 square
+        if col_change == 0 and row_change == direction:
+            if move.pieceCaptured == "--":
+                return True
+            
+        
+        # Move forward 2 squares from the starting row
+        if col_change == 0 and row_change == 2 * direction:
+            if move.startRow == start_row:
+                middle_row = move.startRow + direction
+                if self.board[middle_row][move.startCol] == "--" and move.pieceCaptured == "--":
+                    return True
+        
+        # Capture diagonally
+        if abs(col_change) -- 1 and row_change == direction:
+            if move.pieceCaptured != "--":
+                return True
+        
+        return False
 
 
 
