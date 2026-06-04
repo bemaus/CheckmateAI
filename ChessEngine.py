@@ -5,7 +5,7 @@ This class is responsible for storing all the information about the current stat
 """
 class GameState():
     def __init__(self):
-        logic_board = chess.Board() # Will keep track of all moves to follow chess rules
+        self.logic_board = chess.Board() # Will keep track of all moves to follow chess rules
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
@@ -17,6 +17,7 @@ class GameState():
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
         self.whiteToMove = True
         self.moveLog =[]
+
 
     def is_legal(self, move):
     # Cannot move an empty square
@@ -42,6 +43,10 @@ class GameState():
     def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
         self.board[move.endRow][move.endCol] = move.pieceMoved
+
+        logic_move = chess.Move.from_uci(move.getChessNotation()) # Updates Logic Board to track valid moves
+        self.logic_board.push(logic_move)
+
         self.moveLog.append(move) #log the move to be able to undo it later.
         self.whiteToMove = not self.whiteToMove #swap players
 
@@ -81,6 +86,44 @@ class GameState():
         # This can reuse your teammates' piece-move logic.
         return False
 
+    def get_GameState(self):
+        # Returns interactive chess board and python-chess logic board
+        return self.board, self.logic_board
+
+    def game_over(self):
+        # Returns if a game has ended and why and what color won
+        value = 0
+        reason = ''
+        if self.whiteToMove:
+            color = "Black"
+        else:
+            color = "White"
+
+        if self.logic_board.is_checkmate():
+            value = 1
+            reason = color + " won by Checkmate!"
+        elif self.logic_board.is_stalemate():
+            value = 2
+            reason = "Stalemate"
+        elif self.logic_board.is_insufficient_material():
+            value = 3
+            reason = "Insufficient Material"
+        elif self.logic_board.is_seventyfive_moves():
+            value = 4
+            reason = "Seventyfive Moves"
+        elif self.logic_board.is_fivefold_repetition():
+            value = 5
+            reason = "Fivefold Repetition"
+        elif self.logic_board.can_claim_fifty_moves():
+            value = 6
+            reason = "Claim Fifty Moves"
+        elif self.logic_board.can_claim_threefold_repetition():
+            value = 7
+            reason = "Claim Three Fold Repetition"
+        if value > 0:
+            return True, reason
+
+        return False
 
 
 
@@ -100,6 +143,7 @@ class Move():
         self.pieceMoved = board[self.startRow][self.startCol]
         self.pieceCaptured = board[self.endRow][self.endCol]
 
+
     def getChessNotation(self):
         #you can add to make this like a real chess notation
         return self.getRankFile(self.startRow, self.startCol) + self.getRankFile(self.endRow, self.endCol)
@@ -107,6 +151,7 @@ class Move():
 
     def getRankFile(self, r, c):
         return self.colsToFiles[c] + self.rowsToRanks[r]
+
 
 
 
