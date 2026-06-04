@@ -38,7 +38,61 @@ class GameState():
 
         return True
 
+    def is_valid_king_move(self, move):
+        row_change = abs(move.endRow - move.startRow)
+        col_change = abs(move.endCol - move.startCol)
 
+        # King can only move one square in any direction
+        if row_change <= 1 and col_change <= 1:
+        return True
+
+        return False
+
+    def is_valid_queen_move(self, move):
+        row_change = abs(move.endRow - move.startRow)
+        col_change = abs(move.endCol - move.startCol)
+
+        # Queen moves like a rook: same row or same column
+        if move.startRow == move.endRow or move.startCol == move.endCol:
+            return self.path_is_clear(move)
+    
+        # Queen moves like a bishop: diagonal
+        if row_change == col_change:
+            return self.path_is_clear(move)
+    
+        return False
+
+    def is_legal(self, move):
+        # Cannot move an empty square
+        if move.pieceMoved == "--":
+            return False
+    
+        # White can only move white pieces
+        if self.whiteToMove and move.pieceMoved[0] != "w":
+            return False
+    
+        # Black can only move black pieces
+        if not self.whiteToMove and move.pieceMoved[0] != "b":
+            return False
+    
+        # Cannot capture your own piece
+        if move.pieceCaptured != "--" and move.pieceCaptured[0] == move.pieceMoved[0]:
+            return False
+    
+        piece_type = move.pieceMoved[1]
+    
+        if piece_type == "K":
+            if not self.is_valid_king_move(move):
+                return False
+    
+        if piece_type == "Q":
+            if not self.is_valid_queen_move(move):
+                return False
+    
+        if self.move_leaves_king_in_check(move):
+            return False
+    
+        return True
 
     def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
@@ -63,7 +117,6 @@ class GameState():
         king_row, king_col = self.find_king(king_color)
 
         in_check = self.square_under_attack(king_row, king_col, king_color)
-
         # Undo temp move
         self.board[move.startRow][move.startCol] = original_start
         self.board[move.endRow][move.endCol] = original_end
