@@ -92,37 +92,34 @@ class GameState():
 
     def game_over(self):
         # Returns if a game has ended and why and what color won
-        value = 0
         reason = ''
         if self.whiteToMove:
             color = "Black"
         else:
             color = "White"
-
         if self.logic_board.is_checkmate():
-            value = 1
             reason = color + " won by Checkmate!"
-        elif self.logic_board.is_stalemate():
-            value = 2
-            reason = "Stalemate"
-        elif self.logic_board.is_insufficient_material():
-            value = 3
-            reason = "Insufficient Material"
-        elif self.logic_board.is_seventyfive_moves():
-            value = 4
-            reason = "Seventyfive Moves"
-        elif self.logic_board.is_fivefold_repetition():
-            value = 5
-            reason = "Fivefold Repetition"
-        elif self.logic_board.can_claim_fifty_moves():
-            value = 6
-            reason = "Claim Fifty Moves"
-        elif self.logic_board.can_claim_threefold_repetition():
-            value = 7
-            reason = "Claim Three Fold Repetition"
-        if value > 0:
-            return True, reason
 
+        elif self.logic_board.is_stalemate():
+            reason = "Stalemate"
+
+        elif self.logic_board.is_insufficient_material():
+            reason = "Insufficient Material"
+
+        elif self.logic_board.is_seventyfive_moves():
+            reason = "Seventyfive Moves"
+
+        elif self.logic_board.is_fivefold_repetition():
+            reason = "Fivefold Repetition"
+
+        elif self.logic_board.can_claim_fifty_moves():
+            reason = "Claim Fifty Moves"
+
+        elif self.logic_board.can_claim_threefold_repetition():
+            reason = "Claim Three Fold Repetition"
+
+        if reason != '':
+            return True, reason
         return False
 
 
