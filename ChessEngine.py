@@ -5,7 +5,7 @@ This class is responsible for storing all the information about the current stat
 """
 class GameState():
     def __init__(self):
-        logic_board = chess.Board() # Will keep track of all moves to follow chess rules
+        self.logic_board = chess.Board() # Will keep track of all moves to follow chess rules
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
@@ -18,26 +18,34 @@ class GameState():
         self.whiteToMove = True
         self.moveLog =[]
 
+
     def is_legal(self, move):
-    # Cannot move an empty square
         if move.pieceMoved == "--":
             return False
 
-        # White can only move white pieces
         if self.whiteToMove and move.pieceMoved[0] != "w":
             return False
 
-        # Black can only move black pieces
         if not self.whiteToMove and move.pieceMoved[0] != "b":
             return False
 
-        # Cannot capture your own piece
         if move.pieceCaptured != "--" and move.pieceCaptured[0] == move.pieceMoved[0]:
             return False
         
         # Pawn movement logic
         if move.pieceMoved[1] == "p":
             return self.is_valid_pawn_move(move)
+
+        piece_type = move.pieceMoved[1]
+
+        if piece_type == "K" and not self.is_valid_king_move(move):
+            return False
+
+        if piece_type == "Q" and not self.is_valid_queen_move(move):
+            return False
+
+        if self.move_leaves_king_in_check(move):
+            return False
 
         return True
     
@@ -78,11 +86,63 @@ class GameState():
         
         return False
 
+    def is_valid_king_move(self, move):
+        row_change = abs(move.endRow - move.startRow)
+        col_change = abs(move.endCol - move.startCol)
 
+        # King can only move one square in any direction
+        if row_change <= 1 and col_change <= 1:
+            return True
+
+        return False
+
+    def is_valid_queen_move(self, move):
+        row_change = abs(move.endRow - move.startRow)
+        col_change = abs(move.endCol - move.startCol)
+
+        # Queen moves like a rook: same row or same column
+        if move.startRow == move.endRow or move.startCol == move.endCol:
+            return self.path_is_clear(move)
+    
+        # Queen moves like a bishop: diagonal
+        if row_change == col_change:
+            return self.path_is_clear(move)
+    
+        return False
+
+    def path_is_clear(self, move):
+        row_direction = 0
+        col_direction = 0
+
+        if move.endRow > move.startRow:
+            row_direction = 1
+        elif move.endRow < move.startRow:
+            row_direction = -1
+
+        if move.endCol > move.startCol:
+            col_direction = 1
+        elif move.endCol < move.startCol:
+            col_direction = -1
+
+        current_row = move.startRow + row_direction
+        current_col = move.startCol + col_direction
+
+        while current_row != move.endRow or current_col != move.endCol:
+            if self.board[current_row][current_col] != "--":
+                return False
+
+            current_row += row_direction
+            current_col += col_direction
+
+        return True
 
     def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
         self.board[move.endRow][move.endCol] = move.pieceMoved
+
+        logic_move = chess.Move.from_uci(move.getChessNotation()) # Updates Logic Board to track valid moves
+        self.logic_board.push(logic_move)
+
         self.moveLog.append(move) #log the move to be able to undo it later.
         self.whiteToMove = not self.whiteToMove #swap players
 
@@ -99,7 +159,6 @@ class GameState():
         king_row, king_col = self.find_king(king_color)
 
         in_check = self.square_under_attack(king_row, king_col, king_color)
-
         # Undo temp move
         self.board[move.startRow][move.startCol] = original_start
         self.board[move.endRow][move.endCol] = original_end
@@ -122,6 +181,41 @@ class GameState():
         # This can reuse your teammates' piece-move logic.
         return False
 
+    def get_GameState(self):
+        # Returns interactive chess board and python-chess logic board
+        return self.board, self.logic_board
+
+    def game_over(self):
+        # Returns if a game has ended and why and what color won
+        reason = ''
+        if self.whiteToMove:
+            color = "Black"
+        else:
+            color = "White"
+        if self.logic_board.is_checkmate():
+            reason = color + " won by Checkmate!"
+
+        elif self.logic_board.is_stalemate():
+            reason = "Stalemate"
+
+        elif self.logic_board.is_insufficient_material():
+            reason = "Insufficient Material"
+
+        elif self.logic_board.is_seventyfive_moves():
+            reason = "Seventyfive Moves"
+
+        elif self.logic_board.is_fivefold_repetition():
+            reason = "Fivefold Repetition"
+
+        elif self.logic_board.can_claim_fifty_moves():
+            reason = "Claim Fifty Moves"
+
+        elif self.logic_board.can_claim_threefold_repetition():
+            reason = "Claim Three Fold Repetition"
+
+        if reason != '':
+            return True, reason
+        return False
 
 
 
@@ -141,6 +235,7 @@ class Move():
         self.pieceMoved = board[self.startRow][self.startCol]
         self.pieceCaptured = board[self.endRow][self.endCol]
 
+
     def getChessNotation(self):
         #you can add to make this like a real chess notation
         return self.getRankFile(self.startRow, self.startCol) + self.getRankFile(self.endRow, self.endCol)
@@ -148,6 +243,7 @@ class Move():
 
     def getRankFile(self, r, c):
         return self.colsToFiles[c] + self.rowsToRanks[r]
+
 
 
 

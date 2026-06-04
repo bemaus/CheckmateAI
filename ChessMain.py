@@ -47,6 +47,8 @@ def main():
                         sqSelected = () #reset user clicks
                         playerClicks = []
                     else:
+                        sqSelected = ()  # reset user clicks
+                        playerClicks = []
                         print("Invalid move")
                         sqSelected = ()
                         playerClicks = []
