@@ -1,5 +1,5 @@
 import pygame as p
-from CheckmateAI import ChessEngine
+import ChessEngine
 
 p.init()
 
@@ -50,12 +50,8 @@ def main():
                         sqSelected = ()  # reset user clicks
                         playerClicks = []
                         print("Invalid move")
-            if gs.game_over(): #Checks if the game is over
-                xx, reason = gs.game_over()
-                running = False
-                print("Game Over!")
-                print(reason)
-
+                        sqSelected = ()
+                        playerClicks = []
 
 
         drawGameState(screen, gs)
