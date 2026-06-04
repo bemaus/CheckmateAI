@@ -1,5 +1,5 @@
 import pygame as p
-from CheckmateAI import ChessEngine
+import ChessEngine
 
 p.init()
 
@@ -48,6 +48,8 @@ def main():
                         playerClicks = []
                     else:
                         print("Invalid move")
+                        sqSelected = ()
+                        playerClicks = []
 
 
         drawGameState(screen, gs)
