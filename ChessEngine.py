@@ -19,21 +19,28 @@ class GameState():
         self.moveLog =[]
 
 
-    def is_legal(self, move):
-    # Cannot move an empty square
+   def is_legal(self, move):
         if move.pieceMoved == "--":
             return False
 
-        # White can only move white pieces
         if self.whiteToMove and move.pieceMoved[0] != "w":
             return False
 
-        # Black can only move black pieces
         if not self.whiteToMove and move.pieceMoved[0] != "b":
             return False
 
-        # Cannot capture your own piece
         if move.pieceCaptured != "--" and move.pieceCaptured[0] == move.pieceMoved[0]:
+            return False
+
+        piece_type = move.pieceMoved[1]
+
+        if piece_type == "K" and not self.is_valid_king_move(move):
+            return False
+
+        if piece_type == "Q" and not self.is_valid_queen_move(move):
+            return False
+
+        if self.move_leaves_king_in_check(move):
             return False
 
         return True
@@ -61,6 +68,32 @@ class GameState():
             return self.path_is_clear(move)
     
         return False
+
+    def path_is_clear(self, move):
+        row_direction = 0
+        col_direction = 0
+
+        if move.endRow > move.startRow:
+            row_direction = 1
+        elif move.endRow < move.startRow:
+            row_direction = -1
+
+        if move.endCol > move.startCol:
+            col_direction = 1
+        elif move.endCol < move.startCol:
+            col_direction = -1
+
+        current_row = move.startRow + row_direction
+        current_col = move.startCol + col_direction
+
+        while current_row != move.endRow or current_col != move.endCol:
+            if self.board[current_row][current_col] != "--":
+                return False
+
+            current_row += row_direction
+            current_col += col_direction
+
+        return True
 
     def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
