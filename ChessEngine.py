@@ -5,7 +5,7 @@ This class is responsible for storing all the information about the current stat
 """
 class GameState():
     def __init__(self):
-        logic_board = chess.Board() # Will keep track of all moves to follow chess rules
+        self.logic_board = chess.Board() # Will keep track of all moves to follow chess rules
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
@@ -33,6 +33,9 @@ class GameState():
 
         # Cannot capture your own piece
         if move.pieceCaptured != "--" and move.pieceCaptured[0] == move.pieceMoved[0]:
+            return False
+        
+        if self.move_leaves_king_in_check(move):
             return False
         
         # Pawn movement logic
@@ -72,12 +75,11 @@ class GameState():
                     return True
         
         # Capture diagonally
-        if abs(col_change) -- 1 and row_change == direction:
+        if abs(col_change) == 1 and row_change == direction:
             if move.pieceCaptured != "--":
                 return True
         
         return False
-
 
 
     def makeMove(self, move):
