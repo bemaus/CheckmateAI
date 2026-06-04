@@ -19,7 +19,7 @@ class GameState():
         self.moveLog =[]
 
 
-   def is_legal(self, move):
+    def is_legal(self, move):
         if move.pieceMoved == "--":
             return False
 
@@ -51,7 +51,7 @@ class GameState():
 
         # King can only move one square in any direction
         if row_change <= 1 and col_change <= 1:
-        return True
+            return True
 
         return False
 
