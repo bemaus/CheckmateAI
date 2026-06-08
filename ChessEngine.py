@@ -18,7 +18,13 @@ class GameState():
         self.whiteToMove = True
         self.moveLog =[]
 
-
+    def is_legal(self, move):
+        try:
+            logic_move = chess.Move.from_uci(move.getChessNotation())
+            return logic_move in self.logic_board.legal_moves
+        except ValueError:
+            return False
+    """
     def is_legal(self, move):
         if move.pieceMoved == "--":
             return False
@@ -48,7 +54,7 @@ class GameState():
             return False
 
         return True
-    
+    """
 
     def is_valid_pawn_move(self, move):
         piece_color = move.pieceMoved[0]
@@ -136,7 +142,7 @@ class GameState():
 
         return True
 
-    def makeMove(self, move):
+    """def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
         self.board[move.endRow][move.endCol] = move.pieceMoved
 
@@ -145,7 +151,23 @@ class GameState():
 
         self.moveLog.append(move) #log the move to be able to undo it later.
         self.whiteToMove = not self.whiteToMove #swap players
+    """
+    def makeMove(self, move):
+        logic_move = chess.Move.from_uci(move.getChessNotation())
 
+        if logic_move not in self.logic_board.legal_moves:
+            return False
+
+        self.board[move.startRow][move.startCol] = "--"
+        self.board[move.endRow][move.endCol] = move.pieceMoved
+
+        self.logic_board.push(logic_move)
+        self.syncBoardFromLogic()
+
+        self.moveLog.append(move)
+        self.whiteToMove = not self.whiteToMove
+
+        return True
 
     def move_leaves_king_in_check(self, move):
         original_start = self.board[move.startRow][move.startCol]
@@ -216,6 +238,18 @@ class GameState():
         if reason != '':
             return True, reason
         return False
+
+    def syncBoardFromLogic(self):
+        self.board = [["--" for _ in range(8)] for _ in range(8)]
+
+        for square, piece in self.logic_board.piece_map().items():
+            row = 7 - chess.square_rank(square)
+            col = chess.square_file(square)
+
+            color = "w" if piece.color == chess.WHITE else "b"
+            piece_type = piece.symbol().upper() if piece.symbol().lower() != "p" else "p"
+
+            self.board[row][col] = color + piece_type
 
 
 
