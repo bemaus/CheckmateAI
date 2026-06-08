@@ -52,7 +52,11 @@ def main():
                         print("Invalid move")
                         sqSelected = ()
                         playerClicks = []
-
+                if gs.game_over():  # Checks if the game is over
+                    xx, reason = gs.game_over()
+                    running = False
+                    print("Game Over!")
+                    print(reason)
 
         drawGameState(screen, gs)
         clock.tick(MAX_FPS)
