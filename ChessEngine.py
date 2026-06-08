@@ -19,111 +19,95 @@ class GameState():
         self.moveLog =[]
 
     def is_legal(self, move):
-    # Cannot move an empty square
-        if move.pieceMoved == "--":
-            return False
+        try:
+            uci = move.getChessNotation()
 
-        # White can only move white pieces
-        if self.whiteToMove and move.pieceMoved[0] != "w":
-            return False
+            if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7):
+                uci += "q"
 
-        # Black can only move black pieces
-        if not self.whiteToMove and move.pieceMoved[0] != "b":
-            return False
+            logic_move = chess.Move.from_uci(uci)
+            return logic_move in self.logic_board.legal_moves
 
-        # Cannot capture your own piece
-        if move.pieceCaptured != "--" and move.pieceCaptured[0] == move.pieceMoved[0]:
+        except ValueError:
             return False
+   
+    def makeMove(self, move):
+        uci = move.getChessNotation()
         
-        if self.move_leaves_king_in_check(move):
+        if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): 
+            notSelected = True
+            validString = ""
+            options = "r", "q" , "b", "n"
+            while notSelected:
+                validString = input("promote to what r Rook q Queen b Bishop n Knight")
+                if validString in options:
+                    notSelected = False
+            uci += validString
+
+        try:
+            logic_move = chess.Move.from_uci(uci)
+        except ValueError:
             return False
-        
-        # Pawn movement logic
-        if move.pieceMoved[1] == "p":
-            return self.is_valid_pawn_move(move)
+
+        if logic_move not in self.logic_board.legal_moves:
+            return False
+
+        self.logic_board.push(logic_move)
+        self.syncBoardFromLogic()
+
+        self.moveLog.append(move)
+        self.whiteToMove = not self.whiteToMove
 
         return True
-    
 
-    def is_valid_pawn_move(self, move):
-        piece_color = move.pieceMoved[0]
 
-        row_change = move.endRow - move.startRow
-        col_change = move.endCol - move.startCol
+    def get_GameState(self):
+        # Returns interactive chess board and python-chess logic board
+        return self.board, self.logic_board
 
-        # White pawns move up the board, row goes down
-        if piece_color == "w":
-            direction = -1
-            start_row = 6
-
-        # Black pawns move down the board, row goes up
+    def game_over(self):
+        # Returns if a game has ended and why and what color won
+        reason = ''
+        if self.whiteToMove:
+            color = "Black"
         else:
-            direction = 1
-            start_row = 1
+            color = "White"
+        if self.logic_board.is_checkmate():
+            reason = color + " won by Checkmate!"
 
-        # Move forward 1 square
-        if col_change == 0 and row_change == direction:
-            if move.pieceCaptured == "--":
-                return True
-            
-        
-        # Move forward 2 squares from the starting row
-        if col_change == 0 and row_change == 2 * direction:
-            if move.startRow == start_row:
-                middle_row = move.startRow + direction
-                if self.board[middle_row][move.startCol] == "--" and move.pieceCaptured == "--":
-                    return True
-        
-        # Capture diagonally
-        if abs(col_change) == 1 and row_change == direction:
-            if move.pieceCaptured != "--":
-                return True
-        
+        elif self.logic_board.is_stalemate():
+            reason = "Stalemate"
+
+        elif self.logic_board.is_insufficient_material():
+            reason = "Insufficient Material"
+
+        elif self.logic_board.is_seventyfive_moves():
+            reason = "Seventyfive Moves"
+
+        elif self.logic_board.is_fivefold_repetition():
+            reason = "Fivefold Repetition"
+
+        elif self.logic_board.can_claim_fifty_moves():
+            reason = "Claim Fifty Moves"
+
+        elif self.logic_board.can_claim_threefold_repetition():
+            reason = "Claim Three Fold Repetition"
+
+        if reason != '':
+            return True, reason
         return False
 
+    def syncBoardFromLogic(self):
+        self.board = [["--" for _ in range(8)] for _ in range(8)]
 
-    def makeMove(self, move):
-        self.board[move.startRow][move.startCol] = "--"
-        self.board[move.endRow][move.endCol] = move.pieceMoved
-        self.moveLog.append(move) #log the move to be able to undo it later.
-        self.whiteToMove = not self.whiteToMove #swap players
+        for square, piece in self.logic_board.piece_map().items():
+            row = 7 - chess.square_rank(square)
+            col = chess.square_file(square)
 
+            color = "w" if piece.color == chess.WHITE else "b"
+            piece_type = piece.symbol().upper() if piece.symbol().lower() != "p" else "p"
 
-    def move_leaves_king_in_check(self, move):
-        original_start = self.board[move.startRow][move.startCol]
-        original_end = self.board[move.endRow][move.endCol]
-
-        # make temp move
-        self.board[move.startRow][move.startCol] = "--"
-        self.board[move.endRow][move.endCol] = move.pieceMoved
-
-        king_color = move.pieceMoved[0]
-        king_row, king_col = self.find_king(king_color)
-
-        in_check = self.square_under_attack(king_row, king_col, king_color)
-
-        # Undo temp move
-        self.board[move.startRow][move.startCol] = original_start
-        self.board[move.endRow][move.endCol] = original_end
-
-        return in_check
-    
-
-    def find_king(self, color):
-        king = color + "K"
-        for r in range(8):
-            for c in range(8):
-                if self.board[r][c] == king:
-                    return r, c
-        return None
-    
-    def square_under_attack(self, row, col, king_color):
-        opponent_color = "b" if king_color == "w" else "w"
-
-        # Check if any opponent piece can attack this square
-        # This can reuse your teammates' piece-move logic.
-        return False
-
+            self.board[row][col] = color + piece_type
 
 
 
@@ -143,6 +127,7 @@ class Move():
         self.pieceMoved = board[self.startRow][self.startCol]
         self.pieceCaptured = board[self.endRow][self.endCol]
 
+
     def getChessNotation(self):
         #you can add to make this like a real chess notation
         return self.getRankFile(self.startRow, self.startCol) + self.getRankFile(self.endRow, self.endCol)
@@ -150,6 +135,7 @@ class Move():
 
     def getRankFile(self, r, c):
         return self.colsToFiles[c] + self.rowsToRanks[r]
+
 
 
 
