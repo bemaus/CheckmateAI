@@ -18,220 +18,48 @@ class GameState():
         self.whiteToMove = True
         self.moveLog =[]
 
-
     def is_legal(self, move):
-        if move.pieceMoved == "--":
+        try:
+            uci = move.getChessNotation()
+
+            if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7):
+                uci += "q"
+
+            logic_move = chess.Move.from_uci(uci)
+            return logic_move in self.logic_board.legal_moves
+
+        except ValueError:
             return False
-
-        if self.whiteToMove and move.pieceMoved[0] != "w":
-            return False
-
-        if not self.whiteToMove and move.pieceMoved[0] != "b":
-            return False
-
-        if move.pieceCaptured != "--" and move.pieceCaptured[0] == move.pieceMoved[0]:
-            return False
-        
-        # Pawn movement logic
-        if move.pieceMoved[1] == "p":
-            return self.is_valid_pawn_move(move)
-
-        piece_type = move.pieceMoved[1]
-
-        if piece_type == "K" and not self.is_valid_king_move(move):
-            return False
-
-        if piece_type == "Q" and not self.is_valid_queen_move(move):
-            return False
-
-        if self.move_leaves_king_in_check(move):
-            return False
-
-        return True
-    
-
-    def is_valid_pawn_move(self, move):
-        piece_color = move.pieceMoved[0]
-
-        row_change = move.endRow - move.startRow
-        col_change = move.endCol - move.startCol
-
-        # White pawns move up the board, row goes down
-        if piece_color == "w":
-            direction = -1
-            start_row = 6
-
-        # Black pawns move down the board, row goes up
-        else:
-            direction = 1
-            start_row = 1
-
-        # Move forward 1 square
-        if col_change == 0 and row_change == direction:
-            if move.pieceCaptured == "--":
-                return True
-            
-        
-        # Move forward 2 squares from the starting row
-        if col_change == 0 and row_change == 2 * direction:
-            if move.startRow == start_row:
-                middle_row = move.startRow + direction
-                if self.board[middle_row][move.startCol] == "--" and move.pieceCaptured == "--":
-                    return True
-        
-        # Capture diagonally
-        if abs(col_change) -- 1 and row_change == direction:
-            if move.pieceCaptured != "--":
-                return True
-        
-        return False
-
-    def is_valid_king_move(self, move):
-        row_change = abs(move.endRow - move.startRow)
-        col_change = abs(move.endCol - move.startCol)
-
-        # Normal king move
-        if row_change <= 1 and col_change <= 1:
-            return True
-
-        # Castling move
-        if row_change == 0 and col_change == 2:
-            return self.is_valid_castle_move(move)
-
-        return False
-
-    def is_valid_queen_move(self, move):
-        row_change = abs(move.endRow - move.startRow)
-        col_change = abs(move.endCol - move.startCol)
-
-        # Queen moves like a rook: same row or same column
-        if move.startRow == move.endRow or move.startCol == move.endCol:
-            return self.path_is_clear(move)
-    
-        # Queen moves like a bishop: diagonal
-        if row_change == col_change:
-            return self.path_is_clear(move)
-    
-        return False
-
-    def is_valid_castle_move(self, move):
-        # King must move two columns and stay on same row
-        if move.pieceMoved[1] != "K":
-            return False
-    
-        if move.startRow != move.endRow:
-            return False
-    
-        if abs(move.endCol - move.startCol) != 2:
-            return False
-    
-        # King cannot currently be in check
-        if self.square_under_attack(move.startRow, move.startCol, move.pieceMoved[0]):
-            return False
-    
-        # Determine direction
-        if move.endCol > move.startCol:
-            # Kingside castle
-            rook_col = 7
-            step = 1
-        else:
-            # Queenside castle
-            rook_col = 0
-            step = -1
-    
-        # Rook must be in the corner
-        rook = self.board[move.startRow][rook_col]
-        if rook != move.pieceMoved[0] + "R":
-            return False
-
-        # Squares between king and rook must be empty
-        current_col = move.startCol + step
-        while current_col != rook_col:
-            if self.board[move.startRow][current_col] != "--":
-                return False
-            current_col += step
-    
-        # King cannot move through check
-        current_col = move.startCol
-        for i in range(2):
-            current_col += step
-            if self.square_under_attack(move.startRow, current_col, move.pieceMoved[0]):
-                return False
-    
-        return True
-
-    def path_is_clear(self, move):
-        row_direction = 0
-        col_direction = 0
-
-        if move.endRow > move.startRow:
-            row_direction = 1
-        elif move.endRow < move.startRow:
-            row_direction = -1
-
-        if move.endCol > move.startCol:
-            col_direction = 1
-        elif move.endCol < move.startCol:
-            col_direction = -1
-
-        current_row = move.startRow + row_direction
-        current_col = move.startCol + col_direction
-
-        while current_row != move.endRow or current_col != move.endCol:
-            if self.board[current_row][current_col] != "--":
-                return False
-
-            current_row += row_direction
-            current_col += col_direction
-
-        return True
-
+   
     def makeMove(self, move):
-        self.board[move.startRow][move.startCol] = "--"
-        self.board[move.endRow][move.endCol] = move.pieceMoved
+        uci = move.getChessNotation()
+        
+        if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): 
+            notSelected = True
+            validString = ""
+            options = "r", "q" , "b", "n"
+            while notSelected:
+                validString = input("promote to what r Rook q Queen b Bishop n Knight")
+                if validString in options:
+                    notSelected = False
+            uci += validString
 
-        logic_move = chess.Move.from_uci(move.getChessNotation()) # Updates Logic Board to track valid moves
+        try:
+            logic_move = chess.Move.from_uci(uci)
+        except ValueError:
+            return False
+
+        if logic_move not in self.logic_board.legal_moves:
+            return False
+
         self.logic_board.push(logic_move)
+        self.syncBoardFromLogic()
 
-        self.pawn_promotion(move)
+        self.moveLog.append(move)
+        self.whiteToMove = not self.whiteToMove
 
-        self.moveLog.append(move) #log the move to be able to undo it later.
-        self.whiteToMove = not self.whiteToMove #swap players
+        return True
 
-
-    def move_leaves_king_in_check(self, move):
-        original_start = self.board[move.startRow][move.startCol]
-        original_end = self.board[move.endRow][move.endCol]
-
-        # make temp move
-        self.board[move.startRow][move.startCol] = "--"
-        self.board[move.endRow][move.endCol] = move.pieceMoved
-
-        king_color = move.pieceMoved[0]
-        king_row, king_col = self.find_king(king_color)
-
-        in_check = self.square_under_attack(king_row, king_col, king_color)
-        # Undo temp move
-        self.board[move.startRow][move.startCol] = original_start
-        self.board[move.endRow][move.endCol] = original_end
-
-        return in_check
-    
-
-    def find_king(self, color):
-        king = color + "K"
-        for r in range(8):
-            for c in range(8):
-                if self.board[r][c] == king:
-                    return r, c
-        return None
-    
-    def square_under_attack(self, row, col, king_color):
-        opponent_color = "b" if king_color == "w" else "w"
-
-        # Check if any opponent piece can attack this square
-        # This can reuse your teammates' piece-move logic.
-        return False
 
     def get_GameState(self):
         # Returns interactive chess board and python-chess logic board
@@ -269,45 +97,17 @@ class GameState():
             return True, reason
         return False
 
+    def syncBoardFromLogic(self):
+        self.board = [["--" for _ in range(8)] for _ in range(8)]
 
-    def pawn_promotion(self, move):
-        logic_move = chess.Move.from_uci(move.getChessNotation())
-        if move.pieceMoved == "wp" or move.pieceMoved == "bp":
-            from_sqr = logic_move.uci()[:2]
-            to_sqr = logic_move.uci()[2:]
-            if to_sqr[1] == "1" or to_sqr[1] == "8":
-                square1= chess.parse_square(from_sqr)
-                square2 = chess.parse_square(to_sqr)
-                piece = input("Enter Piece (Q,R,K,B): ")
-                x = True
-                bw = ""
-                if self.whiteToMove:
-                    bw = "w"
-                else:
-                    bw = "b"
-                while x:
-                    if piece == "Q":
-                        chess.Move(square1, square2, promotion=5)
-                        x = False
-                        self.board[move.endRow][move.endCol] = bw+ "Q"
-                    elif piece == "R":
-                        chess.Move(square1, square2, promotion=4)
-                        x = False
-                        move.pieceMoved = bw+ "R"
-                        self.board[move.endRow][move.endCol] = bw + "R"
-                    elif piece == "K":
-                        chess.Move(square1, square2, promotion=2)
-                        x = False
-                        move.pieceMoved = bw+ "K"
-                        self.board[move.endRow][move.endCol] = bw + "K"
-                    elif piece == "B":
-                        chess.Move(square1, square2, promotion= 3)
-                        x = False
-                        move.pieceMoved = bw+ "B"
-                        self.board[move.endRow][move.endCol] = bw + "B"
-                    else:
-                        print("Invalid Piece")
+        for square, piece in self.logic_board.piece_map().items():
+            row = 7 - chess.square_rank(square)
+            col = chess.square_file(square)
 
+            color = "w" if piece.color == chess.WHITE else "b"
+            piece_type = piece.symbol().upper() if piece.symbol().lower() != "p" else "p"
+
+            self.board[row][col] = color + piece_type
 
 
 

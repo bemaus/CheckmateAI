@@ -1,5 +1,6 @@
 import pygame as p
 import ChessEngine
+import chess
 
 p.init()
 
@@ -25,6 +26,7 @@ def main():
     running = True
     sqSelected = () #no square is selected, keep track of the last click of the user (Tuple: (row,col))
     playerClicks = []
+    validSquares = []
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
@@ -39,6 +41,25 @@ def main():
                 else:
                     sqSelected = (row, col)
                     playerClicks.append(sqSelected) # append for both 1st and 2nd clicks
+                
+                if len(playerClicks) == 1:
+                    startRow, startCol = playerClicks[0]
+
+                    selected_square = chess.square(startCol, 7 - startRow)
+
+                    validSquares = []
+
+                    for move in gs.logic_board.legal_moves:
+                        if move.from_square == selected_square:
+                            to_col = chess.square_file(move.to_square)
+                            to_row = 7 - chess.square_rank(move.to_square)
+
+                            validSquares.append((to_row, to_col))
+
+                    if not validSquares:
+                        playerClicks = []
+                        sqSelected = ()
+                
                 if len(playerClicks) == 2: #after 2nd click
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                     if gs.is_legal(move): # Tests if move is Legal
@@ -46,24 +67,27 @@ def main():
                         gs.makeMove(move)
                         sqSelected = () #reset user clicks
                         playerClicks = []
+                        validSquares = []
                     else:
                         print("Invalid move")
                         playerClicks.clear()
                         sqSelected = ()
+                        validSquares = []
                         playerClicks = []
-                if gs.game_over():  # Checks if the game is over
+                if gs.game_over():  # Checks if the game is overinvalid
                     xx, reason = gs.game_over()
                     running = False
                     print("Game Over!")
                     print(reason)
 
-        drawGameState(screen, gs)
+        drawGameState(screen, gs, validSquares)
         clock.tick(MAX_FPS)
         p.display.flip()
 
 
-def drawGameState(screen, gs):
+def drawGameState(screen, gs, validSquares):
     drawBoard(screen)
+    highlightSquares(screen, validSquares)
     drawPieces(screen, gs.board)
 
 
@@ -81,6 +105,14 @@ def drawPieces(screen, board):
             piece = board[r][c]
             if piece != "--":
                 screen.blit(IMAGES[piece], p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
+def highlightSquares(screen, validSquares):
+    highlight = p.Surface((SQ_SIZE, SQ_SIZE))
+    highlight.set_alpha(120)
+    highlight.fill(p.Color("yellow"))
+
+    for row, col in validSquares:
+        screen.blit(highlight, (col * SQ_SIZE, row * SQ_SIZE))
 
 if __name__ == "__main__":
     main()
