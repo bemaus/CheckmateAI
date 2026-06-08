@@ -96,6 +96,39 @@ class GameState():
         if reason != '':
             return True, reason
         return False
+    
+    def evaluateBoard(self):
+        if self.logic_board.is_checkmate():
+            if self.logic_board.turn == chess.WHITE:
+                return -9999
+            else:
+                return 9999
+        
+        if self.logic_board.is_stalemate() or self.logic_board.is_insufficient_material():
+            return 0
+        
+        piece_values = {
+            chess.PAWN: 1,
+            chess.KNIGHT: 3,
+            chess.BISHOP: 3,
+            chess.ROOK: 5,
+            chess.QUEEN: 9,
+            chess.KING: 0
+        }
+
+        score = 0
+
+        for square, piece in self.logic_board.piece_map().items():
+            value = piece_values[piece.piece_type]
+
+            if piece.color == chess.WHITE:
+                score += value
+            else:
+                score -= value
+                
+        return score
+
+
 
     def syncBoardFromLogic(self):
         self.board = [["--" for _ in range(8)] for _ in range(8)]

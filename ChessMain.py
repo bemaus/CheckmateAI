@@ -4,11 +4,18 @@ import chess
 
 p.init()
 
-WIDTH = HEIGHT = 512
+BOARD_WIDTH = BOARD_HEIGHT = 512
+EVAL_BAR_WIDTH = 50
+
+WIDTH = BOARD_WIDTH + EVAL_BAR_WIDTH
+HEIGHT = BOARD_HEIGHT
+
 DIMENSION = 8
-SQ_SIZE = WIDTH // DIMENSION
+SQ_SIZE = BOARD_WIDTH // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
+
+
 
 def loadImages():
     pieces = ['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'bp', 'bR', 'bN', 'bB', 'bQ', 'bK']
@@ -32,9 +39,13 @@ def main():
             if e.type == p.QUIT:
                 running = False
             elif e.type == p.MOUSEBUTTONDOWN:
-                location = p.mouse.get_pos() #(x, y) location of mouse
+                location = p.mouse.get_pos()  # (x, y) location of mouse
+
+                if location[0] >= BOARD_WIDTH:
+                    continue
+
                 col = location[0] // SQ_SIZE
-                row = location [1] // SQ_SIZE
+                row = location[1] // SQ_SIZE
                 if sqSelected == (row, col): # the user clicked the same square twice
                     sqSelected = () #deselect
                     playerClicks = [] #clear player clicks
@@ -89,6 +100,7 @@ def drawGameState(screen, gs, validSquares):
     drawBoard(screen)
     highlightSquares(screen, validSquares)
     drawPieces(screen, gs.board)
+    drawEvaluationBar(screen,gs)
 
 
 def drawBoard(screen):
@@ -113,6 +125,32 @@ def highlightSquares(screen, validSquares):
 
     for row, col in validSquares:
         screen.blit(highlight, (col * SQ_SIZE, row * SQ_SIZE))
+
+def drawEvaluationBar(screen, gs):
+    score = gs.evaluateBoard()
+
+    maxScore = 20
+
+    if score > maxScore:
+        displayScore = maxScore
+    elif score < -maxScore:
+        displayScore = -maxScore
+    else:
+        displayScore = score
+
+    # evaluation bar
+    barX = BOARD_WIDTH
+    barY = 0
+    barWidth = EVAL_BAR_WIDTH
+    barHeight = HEIGHT
+
+    whitePercent = (displayScore + maxScore) / (2 * maxScore)
+    whiteHeight = int(barHeight * whitePercent)
+    blackHeight = barHeight - whiteHeight
+
+    p.draw.rect(screen, p.Color("black"), p.Rect(barX, barY, barWidth, blackHeight))
+    p.draw.rect(screen, p.Color("white"), p.Rect(barX, barY + blackHeight, barWidth, whiteHeight))
+    p.draw.rect(screen, p.Color("gray"), p.Rect(barX, barY, barWidth, barHeight), 2)
 
 if __name__ == "__main__":
     main()
