@@ -90,9 +90,13 @@ class GameState():
         row_change = abs(move.endRow - move.startRow)
         col_change = abs(move.endCol - move.startCol)
 
-        # King can only move one square in any direction
+    # Normal king move
         if row_change <= 1 and col_change <= 1:
             return True
+
+    # Castling move
+        if row_change == 0 and col_change == 2:
+            return self.is_valid_castle_move(move)
 
         return False
 
@@ -109,6 +113,52 @@ class GameState():
             return self.path_is_clear(move)
     
         return False
+
+    def is_valid_castle_move(self, move):
+    # King must move two columns and stay on same row
+    if move.pieceMoved[1] != "K":
+        return False
+
+    if move.startRow != move.endRow:
+        return False
+
+    if abs(move.endCol - move.startCol) != 2:
+        return False
+
+    # King cannot currently be in check
+    if self.square_under_attack(move.startRow, move.startCol, move.pieceMoved[0]):
+        return False
+
+    # Determine direction
+    if move.endCol > move.startCol:
+        # Kingside castle
+        rook_col = 7
+        step = 1
+    else:
+        # Queenside castle
+        rook_col = 0
+        step = -1
+
+    # Rook must be in the corner
+    rook = self.board[move.startRow][rook_col]
+    if rook != move.pieceMoved[0] + "R":
+        return False
+
+    # Squares between king and rook must be empty
+    current_col = move.startCol + step
+    while current_col != rook_col:
+        if self.board[move.startRow][current_col] != "--":
+            return False
+        current_col += step
+
+    # King cannot move through check
+    current_col = move.startCol
+    for i in range(2):
+        current_col += step
+        if self.square_under_attack(move.startRow, current_col, move.pieceMoved[0]):
+            return False
+
+    return True
 
     def path_is_clear(self, move):
         row_direction = 0
