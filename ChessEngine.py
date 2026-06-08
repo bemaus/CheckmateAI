@@ -32,18 +32,13 @@ class GameState():
         except ValueError:
             return False
    
-    def makeMove(self, move):
+    def makeMove(self, move, promotion_choice=None):
         uci = move.getChessNotation()
         if(self.logic_board.turn == self.player):
             if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): 
-                notSelected = True
-                validString = ""
-                options = "r", "q" , "b", "n"
-                while notSelected:
-                    validString = input("promote to what r Rook q Queen b Bishop n Knight")
-                    if validString in options:
-                        notSelected = False
-                uci += validString
+                if promotion_choice is None:
+                    promotion_choice = "q"
+                uci += promotion_choice
         else:
             if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): 
                 uci += "q"
