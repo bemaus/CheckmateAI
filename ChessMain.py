@@ -47,9 +47,8 @@ def main():
                         sqSelected = () #reset user clicks
                         playerClicks = []
                     else:
-                        sqSelected = ()  # reset user clicks
-                        playerClicks = []
                         print("Invalid move")
+                        playerClicks.clear()
                         sqSelected = ()
                         playerClicks = []
                 if gs.game_over():  # Checks if the game is over

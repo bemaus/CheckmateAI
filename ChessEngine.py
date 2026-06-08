@@ -143,6 +143,8 @@ class GameState():
         logic_move = chess.Move.from_uci(move.getChessNotation()) # Updates Logic Board to track valid moves
         self.logic_board.push(logic_move)
 
+        self.pawn_promotion(move)
+
         self.moveLog.append(move) #log the move to be able to undo it later.
         self.whiteToMove = not self.whiteToMove #swap players
 
@@ -216,6 +218,46 @@ class GameState():
         if reason != '':
             return True, reason
         return False
+
+
+    def pawn_promotion(self, move):
+        logic_move = chess.Move.from_uci(move.getChessNotation())
+        if move.pieceMoved == "wp" or move.pieceMoved == "bp":
+            from_sqr = logic_move.uci()[:2]
+            to_sqr = logic_move.uci()[2:]
+            if to_sqr[1] == "1" or to_sqr[1] == "8":
+                square1= chess.parse_square(from_sqr)
+                square2 = chess.parse_square(to_sqr)
+                piece = input("Enter Piece (Q,R,K,B): ")
+                x = True
+                bw = ""
+                if self.whiteToMove:
+                    bw = "w"
+                else:
+                    bw = "b"
+                while x:
+                    if piece == "Q":
+                        chess.Move(square1, square2, promotion=5)
+                        x = False
+                        self.board[move.endRow][move.endCol] = bw+ "Q"
+                    elif piece == "R":
+                        chess.Move(square1, square2, promotion=4)
+                        x = False
+                        move.pieceMoved = bw+ "R"
+                        self.board[move.endRow][move.endCol] = bw + "R"
+                    elif piece == "K":
+                        chess.Move(square1, square2, promotion=2)
+                        x = False
+                        move.pieceMoved = bw+ "K"
+                        self.board[move.endRow][move.endCol] = bw + "K"
+                    elif piece == "B":
+                        chess.Move(square1, square2, promotion= 3)
+                        x = False
+                        move.pieceMoved = bw+ "B"
+                        self.board[move.endRow][move.endCol] = bw + "B"
+                    else:
+                        print("Invalid Piece")
+
 
 
 
