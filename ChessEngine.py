@@ -34,8 +34,15 @@ class GameState():
     def makeMove(self, move):
         uci = move.getChessNotation()
         
-        if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): # auto-promote pawns to queen
-            uci += "q"
+        if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): 
+            notSelected = True
+            validString = ""
+            options = "r", "q" , "b", "k"
+            while notSelected:
+                validString = input("promote to what r Rook q Queen b Bishop k Knight")
+                if validString in options:
+                    notSelected = False
+            uci += validString
 
         try:
             logic_move = chess.Move.from_uci(uci)
