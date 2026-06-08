@@ -69,9 +69,8 @@ def main():
                         playerClicks = []
                         validSquares = []
                     else:
-                        sqSelected = ()  # reset user clicks
-                        playerClicks = []
                         print("Invalid move")
+                        playerClicks.clear()
                         sqSelected = ()
                         validSquares = []
                         playerClicks = []

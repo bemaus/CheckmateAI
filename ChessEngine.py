@@ -39,7 +39,7 @@ class GameState():
             validString = ""
             options = "r", "q" , "b", "n"
             while notSelected:
-                validString = input("promote to what r: Rook q: Queen b: Bishop n: Knight")
+                validString = input("promote to what r Rook q Queen b Bishop n Knight")
                 if validString in options:
                     notSelected = False
             uci += validString
