@@ -37,9 +37,9 @@ class GameState():
         if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): 
             notSelected = True
             validString = ""
-            options = "r", "q" , "b", "k"
+            options = "r", "q" , "b", "n"
             while notSelected:
-                validString = input("promote to what r Rook q Queen b Bishop k Knight")
+                validString = input("promote to what r: Rook q: Queen b: Bishop n: Knight")
                 if validString in options:
                     notSelected = False
             uci += validString
