@@ -18,10 +18,19 @@ class GameState():
         self.whiteToMove = True
         self.moveLog =[]
 
-
+    
     def is_legal(self, move):
         if move.pieceMoved == "--":
             return False
+        
+        try:
+            logic_move = chess.Move.from_uci(move.getChessNotation())
+            return logic_move in self.logic_board.legal_moves
+        except Exception:
+            return False
+        
+        """
+        #Commenting out this portion of code for using with negamax logic
 
         if self.whiteToMove and move.pieceMoved[0] != "w":
             return False
@@ -48,7 +57,7 @@ class GameState():
             return False
 
         return True
-    
+    """
 
     def is_valid_pawn_move(self, move):
         piece_color = move.pieceMoved[0]

@@ -1,5 +1,6 @@
 import pygame as p
 import ChessEngine
+import ChessAI # Import new ChessAI module
 
 p.init()
 
@@ -25,11 +26,20 @@ def main():
     running = True
     sqSelected = () #no square is selected, keep track of the last click of the user (Tuple: (row,col))
     playerClicks = []
+
+    # Adding Config Variables
+    playerOne = True    # Set to True if human is playing white, set to False if AI
+    playerTwo = False   # Set to True if human is playing black, set to False if AI
+
     while running:
+        # Determine if it's currently a human's turn to play
+        humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
+        is_over = gs.game_over()
+
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
-            elif e.type == p.MOUSEBUTTONDOWN:
+            elif e.type == p.MOUSEBUTTONDOWN and humanTurn and not is_over:
                 location = p.mouse.get_pos() #(x, y) location of mouse
                 col = location[0] // SQ_SIZE
                 row = location [1] // SQ_SIZE
@@ -52,7 +62,23 @@ def main():
                         print("Invalid move")
                         sqSelected = ()
                         playerClicks = []
-
+        
+        if not running:
+            break
+        
+        if not humanTurn and not is_over:
+            ai_move = ChessAI.get_best_move(gs, depth=3)
+            if ai_move is not None:
+                print(f"AI Move: {ai_move.getChessNotation()}")
+                gs.makeMove(ai_move)
+            else:
+                print("No moves left for AI")
+        
+        if gs.game_over():
+            game_ended, reason = gs.game_over()
+            if game_ended:
+                print(f"Game Over: {reason}")
+                running = False
 
         drawGameState(screen, gs)
         clock.tick(MAX_FPS)
