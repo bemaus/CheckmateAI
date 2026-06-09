@@ -67,7 +67,8 @@ def main():
             break
         
         if not humanTurn and not is_over:
-            ai_move = ChessAI.get_best_move(gs, depth=3)
+            d = ChessAI.pick_search_depth("hard")
+            ai_move = ChessAI.get_best_move(gs, d)
             if ai_move is not None:
                 print(f"AI Move: {ai_move.getChessNotation()}")
                 gs.makeMove(ai_move)

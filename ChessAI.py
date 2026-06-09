@@ -1,14 +1,15 @@
 import random
 import chess
 import ChessEngine
+import random
 
 PIECE_VALUES = {
-    chess.PAWN: 100,
-    chess.KNIGHT: 320,
-    chess.BISHOP: 320,
-    chess.ROOK: 500,
-    chess.QUEEN: 300,
-    chess.KING: 20000
+    chess.PAWN: 1,
+    chess.KNIGHT: 3,
+    chess.BISHOP: 3,
+    chess.ROOK: 5,
+    chess.QUEEN: 9,
+    chess.KING: 200
 }
 
 def evaluate_board(logic_board):
@@ -61,7 +62,7 @@ def negamax(logic_board, depth, alpha, beta):
     return max_eval
 
 
-def get_best_move(gs, depth= 3):
+def get_best_move(gs, depth):
     """
     Root function to trigger AI search. Returns a ChessEngine.Move object
     """
@@ -98,3 +99,23 @@ def get_best_move(gs, depth= 3):
         return ChessEngine.Move(start_sq, end_sq, gs.board)
     
     return None
+
+DIFFICULTY_PROFILES = {
+    "easy":  {2: 0.7, 3: 0.2, 4: 0.1},
+    "medium": {5: 0.6, 6: 0.3, 7: 0.1},
+    "hard": {7: 0.5, 8: 0.3, 9: 0.2}
+}
+
+def difficulty(weight_map):
+    depths = list(weight_map.keys())
+    weights = list(weight_map.values())
+    return random.choices(depths, weights=weights, k=1)[0]
+
+def pick_search_depth(profile_name):
+    weight_map = DIFFICULTY_PROFILES[profile_name]
+    depths = list(weight_map.keys())
+    weights = list(weight_map.values())
+    return random.choices(depths, weights=weights, k=1)[0]
+
+def play_style():
+    return
