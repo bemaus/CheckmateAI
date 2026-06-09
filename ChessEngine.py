@@ -3,7 +3,6 @@ import chess
 """
 This class is responsible for storing all the information about the current state of a chess game.
 """
-
 class GameState():
     def __init__(self):
         self.logic_board = chess.Board() # Will keep track of all moves to follow chess rules
@@ -32,16 +31,19 @@ class GameState():
         except ValueError:
             return False
    
-    def makeMove(self, move, promotion_choice=None):
+    def makeMove(self, move):
         uci = move.getChessNotation()
-        if(self.logic_board.turn == self.player):
-            if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): 
-                if promotion_choice is None:
-                    promotion_choice = "q"
-                uci += promotion_choice
-        else:
-            if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): 
-                uci += "q"
+        
+        if move.pieceMoved[1] == "p" and (move.endRow == 0 or move.endRow == 7): 
+            notSelected = True
+            validString = ""
+            options = "r", "q" , "b", "n"
+            while notSelected:
+                validString = input("promote to what r Rook q Queen b Bishop n Knight")
+                if validString in options:
+                    notSelected = False
+            uci += validString
+
         try:
             logic_move = chess.Move.from_uci(uci)
         except ValueError:
@@ -94,6 +96,39 @@ class GameState():
         if reason != '':
             return True, reason
         return False
+    
+    def evaluateBoard(self):
+        if self.logic_board.is_checkmate():
+            if self.logic_board.turn == chess.WHITE:
+                return -9999
+            else:
+                return 9999
+        
+        if self.logic_board.is_stalemate() or self.logic_board.is_insufficient_material():
+            return 0
+        
+        piece_values = {
+            chess.PAWN: 1,
+            chess.KNIGHT: 3,
+            chess.BISHOP: 3,
+            chess.ROOK: 5,
+            chess.QUEEN: 9,
+            chess.KING: 0
+        }
+
+        score = 0
+
+        for square, piece in self.logic_board.piece_map().items():
+            value = piece_values[piece.piece_type]
+
+            if piece.color == chess.WHITE:
+                score += value
+            else:
+                score -= value
+                
+        return score
+
+
 
     def syncBoardFromLogic(self):
         self.board = [["--" for _ in range(8)] for _ in range(8)]
