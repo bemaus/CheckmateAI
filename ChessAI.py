@@ -7,7 +7,7 @@ PIECE_VALUES = {
     chess.KNIGHT: 320,
     chess.BISHOP: 320,
     chess.ROOK: 500,
-    chess.QUEEN: 300,
+    chess.QUEEN: 1000,
     chess.KING: 20000
 }
 
@@ -50,24 +50,31 @@ def negamax(logic_board, depth, alpha, beta):
         # Recursive call using negative bounds for score maximization 
         # max(a,b) = -min(-a,-b)
         evaluation = -negamax(logic_board, depth - 1, -beta, -alpha)
-        
+        print(evaluation)
         logic_board.pop()   # Undo move
 
-        max_eval = max(max_eval, evaluation)
-        alpha = max(alpha, evaluation)
-        if alpha >= beta:
-            break   # Beta cutoff
+        if chess.Color:
+            max_eval = max(max_eval, evaluation)
+            alpha = max(alpha, evaluation)
+            if alpha >= beta:
+                break  # Beta cutoff
+        else:
+            max_eval = min(max_eval, evaluation)
+            beta = min(beta, evaluation)
+            if beta <= alpha:
+                break
+
     
     return max_eval
 
 
-def get_best_move(gs, depth= 3):
+def get_best_move(gs, depth= 20):
     """
     Root function to trigger AI search. Returns a ChessEngine.Move object
     """
     best_logic_move = None
     max_eval = float('-inf')
-    alpha = float('-inf')
+    alpha = float('inf')
     beta = float('-inf')
 
     legal_moves = list(gs.logic_board.legal_moves)
@@ -85,7 +92,7 @@ def get_best_move(gs, depth= 3):
         if evaluation > max_eval:
             max_eval = evaluation
             best_logic_move = move
-        
+
         alpha = max(alpha, evaluation)
 
     # Translate python-chess Move object back to custom ChessEngine.Move
