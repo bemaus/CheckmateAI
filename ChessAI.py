@@ -76,6 +76,7 @@ def negamax(logic_board, depth, alpha, beta):
         if evaluation > max_eval:
             max_eval = evaluation
 
+
         alpha = max(alpha, evaluation)
         if alpha >= beta:
             break

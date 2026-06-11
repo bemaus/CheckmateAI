@@ -131,6 +131,7 @@ def main():
         p.display.flip()
 
 
+
 def drawGameState(screen, gs, validSquares):
     drawBoard(screen)
     highlightSquares(screen, validSquares)
