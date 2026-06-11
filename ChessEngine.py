@@ -126,6 +126,7 @@ class Move():
 
 
 
+
     def getChessNotation(self):
         #you can add to make this like a real chess notation
         return self.getRankFile(self.startRow, self.startCol) + self.getRankFile(self.endRow, self.endCol)

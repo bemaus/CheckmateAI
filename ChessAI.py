@@ -56,6 +56,7 @@ def negate_score(score):
     # Normal score
     return -score
 
+
 def negamax(logic_board, depth, alpha, beta):
     """
     Core Negamax functionality with Alpha-Beta pruning.
@@ -82,6 +83,7 @@ def negamax(logic_board, depth, alpha, beta):
             break
 
     return max_eval
+
 
 
 def get_best_move(gs, depth= 4):

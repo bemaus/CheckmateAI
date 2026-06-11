@@ -132,6 +132,7 @@ def main():
 
 
 
+
 def drawGameState(screen, gs, validSquares):
     drawBoard(screen)
     highlightSquares(screen, validSquares)
