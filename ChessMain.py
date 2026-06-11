@@ -112,7 +112,7 @@ def main():
 
         # AI move
         if not humanTurn and not is_over:
-            ai_move = ChessAI.get_best_move(gs, depth=5)
+            ai_move = ChessAI.get_best_move(gs, depth=ai_depth)
             if ai_move is not None:
                 print(f"AI Move: {ai_move.getChessNotation()}")
                 gs.makeMove(ai_move)

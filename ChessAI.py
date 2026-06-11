@@ -86,7 +86,7 @@ def negamax(logic_board, depth, alpha, beta):
 
 
 
-def get_best_move(gs, depth= 4):
+def get_best_move(gs, depth= 3):
     """
     Root function to trigger AI search. Returns a ChessEngine.Move object
     """
