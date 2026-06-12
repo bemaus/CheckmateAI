@@ -249,7 +249,6 @@ class GameState():
             self.board[row][col] = color + piece_type
 
 
-
 class Move():
     ranksToRows = {
         "1":7, "2":6, "3":5, "4":4, "5":3, "6":2, "7":1, "8":0}
@@ -265,6 +264,8 @@ class Move():
         self.endCol = endSq[1]
         self.pieceMoved = board[self.startRow][self.startCol]
         self.pieceCaptured = board[self.endRow][self.endCol]
+
+
 
 
     def getChessNotation(self):
