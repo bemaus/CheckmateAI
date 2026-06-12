@@ -103,10 +103,10 @@ class GameState():
                 return -9999
             else:
                 return 9999
-        
+
         if self.logic_board.is_stalemate() or self.logic_board.is_insufficient_material():
             return 0
-        
+
         piece_values = {
             chess.PAWN: 1,
             chess.KNIGHT: 3,
@@ -118,16 +118,122 @@ class GameState():
 
         score = 0
 
+        center_squares = [
+            chess.D4, chess.E4, chess.D5, chess.E5
+        ]
+
+        extended_center_squares = [
+            chess.C3, chess.D3, chess.E3, chess.F3,
+            chess.C4, chess.D4, chess.E4, chess.F4,
+            chess.C5, chess.D5, chess.E5, chess.F5,
+            chess.C6, chess.D6, chess.E6, chess.F6
+        ]
+
         for square, piece in self.logic_board.piece_map().items():
             value = piece_values[piece.piece_type]
+
+            # Center occupation bonus
+            if square in center_squares:
+                value += 0.25
+            elif square in extended_center_squares:
+                value += 0.10
+
+            # Development bonus for knights and bishops
+            if piece.piece_type in [chess.KNIGHT, chess.BISHOP]:
+                if piece.color == chess.WHITE and square not in [chess.B1, chess.C1, chess.F1, chess.G1]:
+                    value += 0.15
+                elif piece.color == chess.BLACK and square not in [chess.B8, chess.C8, chess.F8, chess.G8]:
+                    value += 0.15
+
+            # Pawn advancement bonus
+            if piece.piece_type == chess.PAWN:
+                rank = chess.square_rank(square)
+
+                if piece.color == chess.WHITE:
+                    value += rank * 0.03
+                else:
+                    value += (7 - rank) * 0.03
 
             if piece.color == chess.WHITE:
                 score += value
             else:
                 score -= value
-                
+
+        # Mobility bonus
+        board_copy = self.logic_board.copy(stack=False)
+
+        board_copy.turn = chess.WHITE
+        white_mobility = len(list(board_copy.legal_moves))
+
+        board_copy.turn = chess.BLACK
+        black_mobility = len(list(board_copy.legal_moves))
+
+        score += (white_mobility - black_mobility) * 0.03
+
+        # Check bonus
+        if self.logic_board.is_check():
+            if self.logic_board.turn == chess.BLACK:
+                score += 0.40
+            else:
+                score -= 0.40
+
+        # Castling / king safety bonus
+        white_king_square = self.logic_board.king(chess.WHITE)
+        black_king_square = self.logic_board.king(chess.BLACK)
+
+        if white_king_square in [chess.G1, chess.C1]:
+            score += 0.35
+
+        if black_king_square in [chess.G8, chess.C8]:
+            score -= 0.35
+
         return score
 
+    def forecastEvaluation(self, depth=2):
+        """
+        Looks ahead a few moves and returns the expected score from White's perspective.
+        Positive = White is better.
+        Negative = Black is better.
+        """
+        return self._minimaxForecast(depth, float('-inf'), float('inf'))
+
+    def _minimaxForecast(self, depth, alpha, beta):
+        if depth == 0 or self.logic_board.is_game_over():
+            return self.evaluateBoard()
+
+        legal_moves = list(self.logic_board.legal_moves)
+
+        if self.logic_board.turn == chess.WHITE:
+            best_score = float('-inf')
+
+            for move in legal_moves:
+                self.logic_board.push(move)
+                score = self._minimaxForecast(depth - 1, alpha, beta)
+                self.logic_board.pop()
+
+                best_score = max(best_score, score)
+                alpha = max(alpha, best_score)
+
+                if beta <= alpha:
+                    break
+
+            return best_score
+
+        else:
+            best_score = float('inf')
+
+            for move in legal_moves:
+                self.logic_board.push(move)
+                score = self._minimaxForecast(depth - 1, alpha, beta)
+                self.logic_board.pop()
+
+                best_score = min(best_score, score)
+                beta = min(beta, best_score)
+
+                if beta <= alpha:
+                    break
+
+            return best_score
 
 
     def syncBoardFromLogic(self):

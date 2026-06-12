@@ -30,6 +30,9 @@ def main():
     screen.fill(p.Color("white"))
     gs = ChessEngine.GameState()
     loadImages()
+
+    evalScore = gs.forecastEvaluation(depth=2)
+
     running = True
     sqSelected = () #no square is selected, keep track of the last click of the user (Tuple: (row,col))
     playerClicks = []
@@ -60,6 +63,8 @@ def main():
 
                     validSquares = []
 
+                    ##evalScore = gs.forecastEvaluation(depth=2)
+
                     for move in gs.logic_board.legal_moves:
                         if move.from_square == selected_square:
                             to_col = chess.square_file(move.to_square)
@@ -76,6 +81,7 @@ def main():
                     if gs.is_legal(move): # Tests if move is Legal
                         print(move.getChessNotation())
                         gs.makeMove(move)
+                        evalScore = gs.forecastEvaluation(depth=2)
                         sqSelected = () #reset user clicks
                         playerClicks = []
                         validSquares = []
@@ -91,16 +97,16 @@ def main():
                     print("Game Over!")
                     print(reason)
 
-        drawGameState(screen, gs, validSquares)
+        drawGameState(screen, gs, validSquares, evalScore)
         clock.tick(MAX_FPS)
         p.display.flip()
 
 
-def drawGameState(screen, gs, validSquares):
+def drawGameState(screen, gs, validSquares, evalScore):
     drawBoard(screen)
     highlightSquares(screen, validSquares)
     drawPieces(screen, gs.board)
-    drawEvaluationBar(screen,gs)
+    drawEvaluationBar(screen, evalScore)
 
 
 def drawBoard(screen):
@@ -126,10 +132,9 @@ def highlightSquares(screen, validSquares):
     for row, col in validSquares:
         screen.blit(highlight, (col * SQ_SIZE, row * SQ_SIZE))
 
-def drawEvaluationBar(screen, gs):
-    score = gs.evaluateBoard()
+def drawEvaluationBar(screen, score):
 
-    maxScore = 20
+    maxScore = 8
 
     if score > maxScore:
         displayScore = maxScore
